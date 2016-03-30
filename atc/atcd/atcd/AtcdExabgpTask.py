@@ -18,6 +18,7 @@ from sparts.tasks.periodic import PeriodicTask
 
 class AtcdExabgpTask(PeriodicTask):
     INTERVAL = 30.0
+    OPT_PREFIX = 'exabgp'
 
     exabgp_expiry = option(
         default=60,
@@ -32,6 +33,12 @@ class AtcdExabgpTask(PeriodicTask):
         metavar='EXABGP_FILE',
         help='path to the file to write exabgp routes to [%(default)s]',
         name='path'
+    )
+
+    exabgp_adv_ip = option(
+        default='',
+        help='List of IPs that need to be constantly advertised through BGP',
+        name='ip',
     )
 
     def initTask(self):
@@ -50,13 +57,14 @@ class AtcdExabgpTask(PeriodicTask):
             tmpfile = tempfile.NamedTemporaryFile(delete=False)
             self.logger.info('Writing exabgp routes to %s' % tmpfile.name)
             tmpfile.write('%d\n' % expiry)
-            for ip in ips:
+            for ip in [self.exabgp_adv_ip] + ips:
                 # FIXME: this assumes ipv4
                 tmpfile.write('route %s/32 next-hop self\n' % ip)
             tmpfile.close()
             self.logger.info(
                 'Moving %s to %s' % (tmpfile.name, self.exabgp_file)
             )
+            os.chmod(tmpfile.name, 0644)
             os.rename(tmpfile.name, self.exabgp_file)
         except Exception:
             # log failure to update exabgp but don't do anything about it.
