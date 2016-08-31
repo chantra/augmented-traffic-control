@@ -12,7 +12,7 @@ ifdef STATICBUILD
 	BUILD += --ldflags '-extldflags "-static"'
 endif
 
-TEST = $(GO) test -v
+TEST = $(GO) test -v -coverprofile=coverage.txt -covermode=atomic
 VET = $(GO) vet
 FMT = $(GO) fmt
 GET = $(GO) get

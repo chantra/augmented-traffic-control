@@ -27,6 +27,7 @@ matrix:
             - make npm_env
             - make lint-ui
             - make static/js/index.js
+          after_success:
 
 script:
     - docker-compose build atc
@@ -35,3 +36,5 @@ script:
     # make binaries and test
     - docker-compose run atc make
     - docker-compose run atc make tests
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
